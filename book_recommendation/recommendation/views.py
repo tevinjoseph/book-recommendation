@@ -55,6 +55,7 @@ class UserPreferenceView(APIView):
         UserPreference.objects.filter(user=user_id, book=book).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
+
 class BookRecommendationView(APIView):
     def get(self, request, user_id):
         liked_books = UserPreference.objects.filter(user=user_id, preference=UserPreference.LIKE).values_list('book__genre', flat=True)
