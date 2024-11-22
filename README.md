@@ -10,6 +10,7 @@ source env/bin/activate
 ## Install the requirements
 
 ```
+cd book_recommendation
 pip install -r requirement.txt
 ```
 
