@@ -60,6 +60,7 @@ class BookRecommendationView(APIView):
         liked_books = UserPreference.objects.filter(user=user_id, preference=UserPreference.LIKE).values_list('book__genre', flat=True)
         recommendations = Book.objects.filter(genre__in=liked_books).exclude(userpreference__user=user_id)
         random_recommendation = Book.objects.exclude(genre__in=liked_books).first()
-        recommendations = list(chain(recommendations, [random_recommendation]))
+        if random_recommendation:
+            recommendations = list(chain(recommendations, [random_recommendation]))
         serializer = BookSerializer(recommendations, many=True)
         return Response(serializer.data)
