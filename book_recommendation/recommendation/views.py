@@ -35,12 +35,13 @@ class UserDetailView(APIView):
 class UserPreferenceView(APIView):
     def post(self, request, user_id):
         request.data["user"] = user_id
-        serializer = UserPreferenceSerializer(data=request.data)
         # Prevent duplicate preferences (a user cannot "like" and "dislike" the same book)
         book = request.data["book"]
         user_preference = UserPreference.objects.filter(user=user_id, book=book)
         if user_preference:
             return Response(["A user cannot 'like' and 'dislike' the same book"], status=status.HTTP_400_BAD_REQUEST)
+
+        serializer = UserPreferenceSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
@@ -52,9 +53,8 @@ class UserPreferenceView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 class BookRecommendationView(APIView):
-    def get(self, request):
-        user = request.user
-        liked_books = UserPreference.objects.filter(user=user, preference=UserPreference.LIKE).values_list('book__genre', flat=True)
-        recommendations = Book.objects.filter(genre__in=liked_books).exclude(userpreference__user=user)
+    def get(self, request, user_id):
+        liked_books = UserPreference.objects.filter(user=user_id, preference=UserPreference.LIKE).values_list('book__genre', flat=True)
+        recommendations = Book.objects.filter(genre__in=liked_books).exclude(userpreference__user=user_id)
         serializer = BookSerializer(recommendations, many=True)
         return Response(serializer.data)
