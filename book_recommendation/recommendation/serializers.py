@@ -12,7 +12,7 @@ class BookSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['url', 'username', 'email']
+        fields = ['id', 'first_name', 'last_name', 'username', 'email']
 
 
 class UserPreferenceSerializer(serializers.ModelSerializer):
