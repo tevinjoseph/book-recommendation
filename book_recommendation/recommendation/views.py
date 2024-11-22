@@ -19,10 +19,10 @@ class UserDetailView(APIView):
     API View to fetch user details by ID.
     """
 
-    def get(self, request, id, *args, **kwargs):
+    def get(self, request, user_id, *args, **kwargs):
         try:
             # Fetch the user by ID
-            user = User.objects.get(id=id)
+            user = User.objects.get(id=user_id)
             serializer = UserSerializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         except User.DoesNotExist:
@@ -32,14 +32,24 @@ class UserDetailView(APIView):
             )
 
 
-class UserPreferenceCreateView(APIView):
-    def post(self, request):
+class UserPreferenceView(APIView):
+    def post(self, request, user_id):
+        request.data["user"] = user_id
         serializer = UserPreferenceSerializer(data=request.data)
+        # Prevent duplicate preferences (a user cannot "like" and "dislike" the same book)
+        book = request.data["book"]
+        user_preference = UserPreference.objects.filter(user=user_id, book=book)
+        if user_preference:
+            return Response(["A user cannot 'like' and 'dislike' the same book"], status=status.HTTP_400_BAD_REQUEST)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    def destroy(self, request, user_id):
+        book = request.data["book"]
+        UserPreference.objects.filter(user=user_id, book=book).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 class BookRecommendationView(APIView):
     def get(self, request):
